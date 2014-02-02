@@ -2,6 +2,7 @@ import keystoneclient.v2_0.client as keystone
 import glanceclient as glance
 import novaclient.v1_1.client as nova
 import os
+import time
 
 from credentials import get_keystone_creds
 from credentials import get_nova_creds
@@ -23,3 +24,11 @@ if __name__ == '__main__':
             flavor = novaclient.flavors.find(name="m1.micro")
             instance = novaclient.servers.create(name=image.id, image=image, flavor=flavor)
             
+            # check whether the instance has been successfully started
+            status = instance.status
+            while status == 'BUILD':
+                    time.sleep(5)
+                    instance = novaclient.servers.get(instance.id)
+                    print "status: %s" %instance.status
+                    if status == 'ERROR' or 'ACTIVE':
+                        break
